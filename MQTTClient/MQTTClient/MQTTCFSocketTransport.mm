@@ -90,7 +90,7 @@
              CFRelease(error);
          }
      }
-    return false;
+    return NO;
 }
 
 void customStreamCallback(CFReadStreamRef stream, CFStreamEventType type, void *clientCallBackInfo) {

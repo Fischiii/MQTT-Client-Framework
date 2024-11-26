@@ -84,6 +84,5 @@
 
 + (NSArray *)clientCertsFromP12:(NSString *)path passphrase:(NSString *)passphrase;
 
-- (BOOL)evaluateTrustChain: (SecTrustRef)serverTrust;
 
 @end
