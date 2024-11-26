@@ -53,6 +53,11 @@
  */
 @property (strong, nonatomic) NSArray *certificates;
 
+/**
+ * Use to pin a server certificat for the tls connection.
+ */
+@property (assign, nonatomic) SecCertificateRef certificatePin;
+
 /** reads the content of a PKCS12 file and converts it to an certificates array for initWith...
  @param path the path to a PKCS12 file
  @param passphrase the passphrase to unlock the PKCS12 file
@@ -78,5 +83,7 @@
  */
 
 + (NSArray *)clientCertsFromP12:(NSString *)path passphrase:(NSString *)passphrase;
+
+- (BOOL)evaluateTrustChain: (SecTrustRef)serverTrust;
 
 @end
