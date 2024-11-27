@@ -29,6 +29,7 @@ typedef NS_ENUM(NSInteger, MQTTCFSocketEncoderState) {
 @property (strong, nonatomic) NSError *error;
 @property (strong, nonatomic) NSOutputStream *stream;
 @property (weak, nonatomic ) id<MQTTCFSocketEncoderDelegate> delegate;
+@property (assign, nonatomic) SecCertificateRef certificatePin;
 
 - (void)open;
 - (void)close;

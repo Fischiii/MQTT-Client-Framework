@@ -6,7 +6,7 @@
 //
 
 #import "MQTTCFSocketEncoder.h"
-
+#import "MQTTCFVerify.h"
 #import "MQTTLog.h"
 
 @interface MQTTCFSocketEncoder()
@@ -22,6 +22,7 @@
     self.state = MQTTCFSocketEncoderStateInitializing;
     self.buffer = [[NSMutableData alloc] init];
     self.stream = nil;
+    self.certificatePin = nil;
     return self;
 }
 
@@ -44,6 +45,7 @@
     _state = state;
 }
 
+
 - (void)stream:(NSStream *)sender handleEvent:(NSStreamEvent)eventCode {
     if (eventCode & NSStreamEventOpenCompleted) {
         DDLogVerbose(@"[MQTTCFSocketEncoder] NSStreamEventOpenCompleted");
@@ -54,6 +56,15 @@
     if (eventCode & NSStreamEventHasSpaceAvailable) {
         DDLogVerbose(@"[MQTTCFSocketEncoder] NSStreamEventHasSpaceAvailable");
         if (self.state == MQTTCFSocketEncoderStateInitializing) {
+            if(self.certificatePin){
+                if ([NSThread isMainThread]) {
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                        [MQTTCFVerify checkSSLTrustForWriteStream: (__bridge CFWriteStreamRef)(self.stream) certificate:self.certificatePin];
+                    });
+                } else {
+                    [MQTTCFVerify checkSSLTrustForWriteStream: (__bridge CFWriteStreamRef)(self.stream) certificate:self.certificatePin];
+                }
+            }
             self.state = MQTTCFSocketEncoderStateReady;
             [self.delegate encoderDidOpen:self];
         }
@@ -90,7 +101,7 @@
         }
         
         if (self.buffer.length) {
-            DDLogVerbose(@"[MQTTCFSocketEncoder] buffer to write (%lu)=%@...",
+                    DDLogVerbose(@"[MQTTCFSocketEncoder] buffer to write (%lu)=%@...",
                          (unsigned long)self.buffer.length,
                          [self.buffer subdataWithRange:NSMakeRange(0, MIN(256, self.buffer.length))]);
             

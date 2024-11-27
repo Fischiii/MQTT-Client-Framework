@@ -62,84 +62,6 @@
     dispatch_queue_set_specific(_queue, &QueueIdentityKey, (__bridge void *)_queue, NULL);
 }
 
-- (BOOL)evaluateTrustChain: (SecTrustRef)serverTrust {
-    
-    // Create a custom trust evaluation policy
-    SecCertificateRef certificate = self.certificatePin;
-    CFArrayRef caArray = CFArrayCreate(NULL, (const void **)&certificate, 1, &kCFTypeArrayCallBacks);
-    SecTrustSetAnchorCertificates(serverTrust, caArray);
-    SecTrustSetAnchorCertificatesOnly(serverTrust, YES); // Only trust the provided CA
-
-      // Evaluate the server's certificate
-     // Evaluate the server certificate
-     CFErrorRef error = NULL;
-     BOOL trusted = SecTrustEvaluateWithError(serverTrust, &error);
-
-     // Release the CA array
-     CFRelease(caArray);
-
-     if (trusted) {
-         // The certificate is trusted
-         return trusted;
-     } else {
-         // Handle the error if needed
-         if (error) {
-             CFStringRef errorDescription = CFErrorCopyDescription(error);
-             NSLog(@"Trust evaluation failed: %@", errorDescription);
-             CFRelease(errorDescription);
-             CFRelease(error);
-         }
-     }
-    return NO;
-}
-
-void customStreamCallback(CFReadStreamRef stream, CFStreamEventType type, void *clientCallBackInfo) {
-    if (type == kCFStreamEventHasBytesAvailable || type == kCFStreamEventCanAcceptBytes) {
-        // Obtain the server trust
-        SecTrustRef serverTrust = (SecTrustRef)CFReadStreamCopyProperty(stream, kCFStreamPropertySSLPeerTrust);
-        if (serverTrust) {
-            
-            // Create a custom trust evaluation policy
-            if ([((__bridge MQTTCFSocketTransport *)clientCallBackInfo) evaluateTrustChain:serverTrust]){
-                CFRelease(serverTrust);
-                return;
-            }
-          
-            CFRelease(serverTrust);
-        }
-
-        // If trust evaluation fails, close the stream
-        CFReadStreamClose(stream);
-    } else if (type == kCFStreamEventErrorOccurred) {
-        // Handle the error
-        CFReadStreamClose(stream);
-    }
-}
-
-void customWriteStreamCallback(CFWriteStreamRef stream, CFStreamEventType type, void *clientCallBackInfo) {
-    if (type == kCFStreamEventHasBytesAvailable || type == kCFStreamEventCanAcceptBytes) {
-        // Obtain the server trust
-        SecTrustRef serverTrust = (SecTrustRef)CFWriteStreamCopyProperty(stream, kCFStreamPropertySSLPeerTrust);
-        if (serverTrust) {
-           
-            
-            // Create a custom trust evaluation policy
-            if ([((__bridge MQTTCFSocketTransport *)clientCallBackInfo) evaluateTrustChain:serverTrust]){
-                CFRelease(serverTrust);
-                return;
-            }
-            
-            CFRelease(serverTrust);
-        }
-
-        // If trust evaluation fails, close the stream
-        CFWriteStreamClose(stream);
-    } else if (type == kCFStreamEventErrorOccurred) {
-        // Handle the error
-        CFWriteStreamClose(stream);
-    }
-}
-
 - (void)open {
     DDLogVerbose(@"[MQTTCFSocketTransport] open");
     self.state = MQTTTransportOpening;
@@ -153,10 +75,10 @@ void customWriteStreamCallback(CFWriteStreamRef stream, CFStreamEventType type, 
 
     CFReadStreamSetProperty(readStream, kCFStreamPropertyShouldCloseNativeSocket, kCFBooleanTrue);
     CFWriteStreamSetProperty(writeStream, kCFStreamPropertyShouldCloseNativeSocket, kCFBooleanTrue);
-    
+
+    NSMutableDictionary *sslOptions = [[NSMutableDictionary alloc] init];
     if (self.tls) {
-        NSMutableDictionary *sslOptions = [[NSMutableDictionary alloc] init];
-        
+
         sslOptions[(NSString *)kCFStreamSSLLevel] = self.streamSSLLevel;
         
         if (self.certificates) {
@@ -164,15 +86,9 @@ void customWriteStreamCallback(CFWriteStreamRef stream, CFStreamEventType type, 
         }
         
         if(self.certificatePin){
+            DDLogVerbose(@"[MQTTCFSocketTransport] ca certificate avialable");
             // Disable default certificate validation
-
             sslOptions[(NSString *)kCFStreamSSLValidatesCertificateChain] = @NO;
-            
-            // Add a custom SSL trust callback
-            CFReadStreamSetClient(readStream, kCFStreamEventHasBytesAvailable | kCFStreamEventErrorOccurred, customStreamCallback, NULL);
-            // Write stream needs a different CB
-            CFWriteStreamSetClient(writeStream, kCFStreamEventCanAcceptBytes | kCFStreamEventErrorOccurred, customWriteStreamCallback, NULL);
-
         }
         
         if (!CFReadStreamSetProperty(readStream, kCFStreamPropertySSLSettings, (__bridge CFDictionaryRef)(sslOptions))) {
@@ -193,8 +109,10 @@ void customWriteStreamCallback(CFWriteStreamRef stream, CFStreamEventType type, 
     }
     
     if (!connectError) {
+        
         self.encoder.delegate = nil;
         self.encoder = [[MQTTCFSocketEncoder alloc] init];
+        self.encoder.certificatePin = self.certificatePin;
         CFWriteStreamSetDispatchQueue(writeStream, self.queue);
         self.encoder.stream = CFBridgingRelease(writeStream);
         self.encoder.delegate = self;
@@ -205,6 +123,7 @@ void customWriteStreamCallback(CFWriteStreamRef stream, CFStreamEventType type, 
         
         self.decoder.delegate = nil;
         self.decoder = [[MQTTCFSocketDecoder alloc] init];
+        self.decoder.certificatePin = self.certificatePin;
         CFReadStreamSetDispatchQueue(readStream, self.queue);
         self.decoder.stream =  CFBridgingRelease(readStream);
         self.decoder.delegate = self;
@@ -212,7 +131,10 @@ void customWriteStreamCallback(CFWriteStreamRef stream, CFStreamEventType type, 
             [self.decoder.stream setProperty:NSStreamNetworkServiceTypeVoIP forKey:NSStreamNetworkServiceType];
         }
         [self.decoder open];
+        
+        DDLogVerbose(@"[MQTTCFSocketTransport] finished open");
     } else {
+        DDLogVerbose(@"[MQTTCFSocketTransport] error in open: %@", connectError);
         [self close];
     }
 }
