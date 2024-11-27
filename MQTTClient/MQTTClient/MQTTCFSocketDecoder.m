@@ -6,7 +6,7 @@
 //
 
 #import "MQTTCFSocketDecoder.h"
-
+#import "MQTTCFVerify.h"
 #import "MQTTLog.h"
 
 @interface MQTTCFSocketDecoder()
@@ -20,6 +20,7 @@
     self.state = MQTTCFSocketDecoderStateInitializing;
     
     self.stream = nil;
+    self.certificatePin = nil;
     return self;
 }
 
@@ -39,16 +40,25 @@
     [self.stream setDelegate:nil];
 }
 
+
 - (void)stream:(NSStream *)sender handleEvent:(NSStreamEvent)eventCode {
     if (eventCode & NSStreamEventOpenCompleted) {
         DDLogVerbose(@"[MQTTCFSocketDecoder] NSStreamEventOpenCompleted");
-        self.state = MQTTCFSocketDecoderStateReady;
         [self.delegate decoderDidOpen:self];
     }
     
     if (eventCode & NSStreamEventHasBytesAvailable) {
         DDLogVerbose(@"[MQTTCFSocketDecoder] NSStreamEventHasBytesAvailable");
         if (self.state == MQTTCFSocketDecoderStateInitializing) {
+            if(self.certificatePin){
+                if ([NSThread isMainThread]) {
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                        [MQTTCFVerify checkSSLTrustForReadStream: (__bridge CFReadStreamRef)(self.stream) certificate:self.certificatePin];
+                    });
+                } else {
+                    [MQTTCFVerify checkSSLTrustForReadStream: (__bridge CFReadStreamRef)(self.stream)certificate:self.certificatePin];
+                }
+            }
             self.state = MQTTCFSocketDecoderStateReady;
         }
         

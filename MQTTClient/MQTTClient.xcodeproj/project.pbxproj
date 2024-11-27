@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		250B48F42D010782BCF833EA /* Pods_MQTTClientiOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EFDEC382FC26A957B4714B1 /* Pods_MQTTClientiOSTests.framework */; };
+		2E2522812CF7740C00D693AA /* MQTTCFVerify.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E2522802CF7740C00D693AA /* MQTTCFVerify.m */; };
+		2E2522822CF7740C00D693AA /* MQTTCFVerify.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E2522802CF7740C00D693AA /* MQTTCFVerify.m */; };
+		2E2522832CF7740C00D693AA /* MQTTCFVerify.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E2522802CF7740C00D693AA /* MQTTCFVerify.m */; };
 		60FA2461C63E4D11D3C53C1F /* Pods_MQTTClienttvOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C994F5E5702C079ADD68318C /* Pods_MQTTClienttvOSTests.framework */; };
 		7F4D27652B1C407230916178 /* Pods_MQTTClientmacOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F17057D5548D82E9777383B /* Pods_MQTTClientmacOS.framework */; };
 		840715FA1BBE999700FBB3CB /* mosquitto.org.cer in Resources */ = {isa = PBXBuildFile; fileRef = 8482D3C91B49332700D81CC8 /* mosquitto.org.cer */; };
@@ -286,6 +289,8 @@
 		0F0C55D19D5DC409A7A95170 /* Pods-MQTTClienttvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MQTTClienttvOS.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MQTTClienttvOS/Pods-MQTTClienttvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		0F17057D5548D82E9777383B /* Pods_MQTTClientmacOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MQTTClientmacOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1FD1750F6ADDC84BEEC9C779 /* Pods-MQTTClientmacOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MQTTClientmacOS.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MQTTClientmacOS/Pods-MQTTClientmacOS.debug.xcconfig"; sourceTree = "<group>"; };
+		2E2522802CF7740C00D693AA /* MQTTCFVerify.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MQTTCFVerify.m; sourceTree = "<group>"; };
+		2E2522842CF7741D00D693AA /* MQTTCFVerify.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MQTTCFVerify.h; sourceTree = "<group>"; };
 		2FD1186A99B534DC48CA65BF /* Pods-MQTTClientOSXTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MQTTClientOSXTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MQTTClientOSXTests/Pods-MQTTClientOSXTests.debug.xcconfig"; sourceTree = "<group>"; };
 		3DBF6E5116443103995D2D2A /* Pods_MQTTClientiOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MQTTClientiOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4182CA8554A2D7614F23602A /* Pods-MQTTClienttvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MQTTClienttvOS.release.xcconfig"; path = "Pods/Target Support Files/Pods-MQTTClienttvOS/Pods-MQTTClienttvOS.release.xcconfig"; sourceTree = "<group>"; };
@@ -716,6 +721,8 @@
 				84B6A1981C15C2F700618573 /* MQTTCFSocketDecoder.m */,
 				84B6A1931C14E7E700618573 /* MQTTCFSocketTransport.h */,
 				84B6A1941C14E7E700618573 /* MQTTCFSocketTransport.mm */,
+				2E2522802CF7740C00D693AA /* MQTTCFVerify.m */,
+				2E2522842CF7741D00D693AA /* MQTTCFVerify.h */,
 			);
 			name = CFSocketTransport;
 			sourceTree = "<group>";
@@ -1432,6 +1439,7 @@
 				C7515EC01F4C6A710071CFFE /* ForegroundReconnection.m in Sources */,
 				C7515EAC1F4C51600071CFFE /* ReconnectTimer.m in Sources */,
 				C7E397991F0F71F1000C512E /* MQTTLog.m in Sources */,
+				2E2522812CF7740C00D693AA /* MQTTCFVerify.m in Sources */,
 				84998C951C0EE3D600119061 /* MQTTSessionLegacy.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1461,6 +1469,7 @@
 				C7515EC21F4C6A710071CFFE /* ForegroundReconnection.m in Sources */,
 				C7515EAE1F4C51600071CFFE /* ReconnectTimer.m in Sources */,
 				C7E3979B1F0F71F1000C512E /* MQTTLog.m in Sources */,
+				2E2522832CF7740C00D693AA /* MQTTCFVerify.m in Sources */,
 				F6D08FBC1E535BCB00CD2566 /* MQTTSessionManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1490,6 +1499,7 @@
 				C7515EC11F4C6A710071CFFE /* ForegroundReconnection.m in Sources */,
 				C7515EAD1F4C51600071CFFE /* ReconnectTimer.m in Sources */,
 				C7E3979A1F0F71F1000C512E /* MQTTLog.m in Sources */,
+				2E2522822CF7740C00D693AA /* MQTTCFVerify.m in Sources */,
 				F6D08FF01E535F1000CD2566 /* MQTTSessionManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
