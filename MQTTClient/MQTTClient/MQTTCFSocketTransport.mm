@@ -38,6 +38,8 @@
     self.certificates = nil;
     self.queue = dispatch_get_main_queue();
     self.streamSSLLevel = (NSString *)kCFStreamSocketSecurityLevelNegotiatedSSL;
+    self.certificatePin = nil;
+    self.disableSystemCertificateValidation = NO;
     return self;
 }
 
@@ -85,8 +87,8 @@
             sslOptions[(NSString *)kCFStreamSSLCertificates] = self.certificates;
         }
         
-        if(self.certificatePin){
-            DDLogVerbose(@"[MQTTCFSocketTransport] ca certificate avialable");
+        if(self.certificatePin || self.disableSystemCertificateValidation){
+            DDLogVerbose(@"[MQTTCFSocketTransport] Disable system certificates or certificate pin.");
             // Disable default certificate validation
             sslOptions[(NSString *)kCFStreamSSLValidatesCertificateChain] = @NO;
         }

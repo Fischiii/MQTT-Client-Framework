@@ -58,6 +58,13 @@
  */
 @property (assign, nonatomic) SecCertificateRef certificatePin;
 
+/**
+ * Disable System certificate validation
+ * Warning this greatly roduces the security of the connection as the certificate the server sets will not be validated.
+ * Mutually exclusive with `certificatePin`. If `certificatePin` is set it takes precidence and the certificate will be validated.
+ */
+@property (nonatomic) BOOL disableSystemCertificateValidation;
+
 /** reads the content of a PKCS12 file and converts it to an certificates array for initWith...
  @param path the path to a PKCS12 file
  @param passphrase the passphrase to unlock the PKCS12 file
