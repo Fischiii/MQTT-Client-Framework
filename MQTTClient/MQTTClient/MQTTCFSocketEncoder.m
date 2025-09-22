@@ -46,6 +46,14 @@
 }
 
 
+- (void)checkStateReady {
+    if (self.state == MQTTCFSocketEncoderStateReady) {
+        if (self.buffer.length) {
+            [self send:nil];
+        }
+    }
+}
+
 - (void)stream:(NSStream *)sender handleEvent:(NSStreamEvent)eventCode {
     if (eventCode & NSStreamEventOpenCompleted) {
         DDLogVerbose(@"[MQTTCFSocketEncoder] NSStreamEventOpenCompleted");
@@ -60,20 +68,23 @@
                 if ([NSThread isMainThread]) {
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                         [MQTTCFVerify checkSSLTrustForWriteStream: (__bridge CFWriteStreamRef)(self.stream) certificate:self.certificatePin];
+                        self.state = MQTTCFSocketEncoderStateReady;
+                        [self.delegate encoderDidOpen:self];
+                        [self checkStateReady];
                     });
+                    return;
                 } else {
                     [MQTTCFVerify checkSSLTrustForWriteStream: (__bridge CFWriteStreamRef)(self.stream) certificate:self.certificatePin];
+                    self.state = MQTTCFSocketEncoderStateReady;
+                    [self.delegate encoderDidOpen:self];
                 }
+            } else {
+                self.state = MQTTCFSocketEncoderStateReady;
+                [self.delegate encoderDidOpen:self];
             }
-            self.state = MQTTCFSocketEncoderStateReady;
-            [self.delegate encoderDidOpen:self];
         }
         
-        if (self.state == MQTTCFSocketEncoderStateReady) {
-            if (self.buffer.length) {
-                [self send:nil];
-            }
-        }
+        [self checkStateReady];
     }
     if (eventCode & NSStreamEventEndEncountered) {
         DDLogVerbose(@"[MQTTCFSocketEncoder] NSStreamEventEndEncountered");

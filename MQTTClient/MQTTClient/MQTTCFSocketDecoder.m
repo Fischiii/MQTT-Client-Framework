@@ -41,6 +41,24 @@
 }
 
 
+- (void)checkStateReady {
+    if (self.state == MQTTCFSocketDecoderStateReady) {
+        NSInteger n;
+        UInt8 buffer[768];
+
+        n = [self.stream read:buffer maxLength:sizeof(buffer)];
+        if (n == -1) {
+            self.state = MQTTCFSocketDecoderStateError;
+            [self.delegate decoder:self didFailWithError:nil];
+        } else {
+            NSData *data = [NSData dataWithBytes:buffer length:n];
+            DDLogVerbose(@"[MQTTCFSocketDecoder] received (%lu)=%@...", (unsigned long)data.length,
+                         [data subdataWithRange:NSMakeRange(0, MIN(256, data.length))]);
+            [self.delegate decoder:self didReceiveMessage:data];
+        }
+    }
+}
+
 - (void)stream:(NSStream *)sender handleEvent:(NSStreamEvent)eventCode {
     if (eventCode & NSStreamEventOpenCompleted) {
         DDLogVerbose(@"[MQTTCFSocketDecoder] NSStreamEventOpenCompleted");
@@ -54,29 +72,19 @@
                 if ([NSThread isMainThread]) {
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                         [MQTTCFVerify checkSSLTrustForReadStream: (__bridge CFReadStreamRef)(self.stream) certificate:self.certificatePin];
+                        self.state = MQTTCFSocketDecoderStateReady;
+                        [self checkStateReady];
                     });
+                    return;
                 } else {
                     [MQTTCFVerify checkSSLTrustForReadStream: (__bridge CFReadStreamRef)(self.stream)certificate:self.certificatePin];
+                    self.state = MQTTCFSocketDecoderStateReady;
                 }
-            }
-            self.state = MQTTCFSocketDecoderStateReady;
-        }
-        
-        if (self.state == MQTTCFSocketDecoderStateReady) {
-            NSInteger n;
-            UInt8 buffer[768];
-            
-            n = [self.stream read:buffer maxLength:sizeof(buffer)];
-            if (n == -1) {
-                self.state = MQTTCFSocketDecoderStateError;
-                [self.delegate decoder:self didFailWithError:nil];
             } else {
-                NSData *data = [NSData dataWithBytes:buffer length:n];
-                DDLogVerbose(@"[MQTTCFSocketDecoder] received (%lu)=%@...", (unsigned long)data.length,
-                             [data subdataWithRange:NSMakeRange(0, MIN(256, data.length))]);
-                [self.delegate decoder:self didReceiveMessage:data];
+                self.state = MQTTCFSocketDecoderStateReady;
             }
         }
+        [self checkStateReady];
     }
     if (eventCode & NSStreamEventHasSpaceAvailable) {
         DDLogVerbose(@"[MQTTCFSocketDecoder] NSStreamEventHasSpaceAvailable");
